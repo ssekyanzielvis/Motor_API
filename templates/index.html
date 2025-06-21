@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton Vehicle Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.6em;
+        }
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-group, .status-item {
+            background-color: #fdfdfd;
+            border: 1px solid #e0e6ed;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .control-group label, .status-item strong {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="number"], input[type="range"], select {
+            width: calc(100% - 20px); /* Account for padding */
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        button {
+            background-color: #28a745; /* Green for primary actions */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+            margin-top: auto; /* Push button to bottom if content varies */
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        button.red {
+            background-color: #dc3545;
+        }
+        button.red:hover {
+            background-color: #c82333;
+        }
+        button.blue {
+            background-color: #007bff;
+        }
+        button.blue:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .status-item span {
+            font-size: 1.1em;
+            color: #007bff;
+            font-weight: 500;
+        }
+        .status-item.error span {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        #message-area {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            min-height: 40px;
+            font-size: 0.95em;
+            color: #333;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+        #message-area.success {
+            background-color: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        #message-area.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .section-grid {
+                grid-template-columns: 1fr; /* Stack columns on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Proton Vehicle Dashboard</h1>
+
+        <div id="message-area">Ready.</div>
+
+        <h2>Vehicle Control</h2>
+        <div class="section-grid">
+            <div class="control-group">
+                <label for="security-lock">Security Lock:</label>
+                <button onclick="setSecurityLock(false)" class="red">Unlock Vehicle</button>
+                <button onclick="setSecurityLock(true)" class="blue">Lock Vehicle</button>
+            </div>
+            <div class="control-group">
+                <label>Motor Power:</label>
+                <button id="motorOnBtn" onclick="toggleMotorPower(true)" class="green">Turn On Motor</button>
+                <button id="motorOffBtn" onclick="toggleMotorPower(false)" class="red">Turn Off Motor</button>
+            </div>
+            <div class="control-group">
+                <label for="speed-input">Target Speed (kph):</label>
+                <input type="number" id="speed-input" value="0" min="0" max="80">
+                <button onclick="setSpeed()">Set Speed</button>
+            </div>
+            <div class="control-group">
+                <label for="direction-select">Direction:</label>
+                <select id="direction-select">
+                    <option value="neutral">Neutral</option>
+                    <option value="forward">Forward</option>
+                    <option value="reverse">Reverse</option>
+                </select>
+                <button onclick="setDirection()">Set Direction</button>
+            </div>
+            <div class="control-group">
+                <label for="brake-range">Brake Force (0.0-1.0):</label>
+                <input type="range" id="brake-range" min="0" max="1" step="0.1" value="0">
+                <span id="brake-value">0.0</span>
+                <button onclick="applyBrake()">Apply Brake</button>
+            </div>
+            <div class="control-group">
+                <label for="steering-range">Steering Angle (-90 to +90):</label>
+                <input type="range" id="steering-range" min="-90" max="90" step="1" value="0">
+                <span id="steering-value">0</span>
+                <button onclick="setSteering()">Set Steering</button>
+            </div>
+            <div class="control-group">
+                <label>Charging:</label>
+                <button onclick="setCharging('solar', true)" class="green">Start Solar Charge</button>
+                <button onclick="setCharging('solar', false)" class="red">Stop Solar Charge</button>
+                <button onclick="setCharging('grid', true)" class="green">Start Grid Charge</button>
+                <button onclick="setCharging('grid', false)" class="red">Stop Grid Charge</button>
+            </div>
+        </div>
+
+        <h2>Vehicle Status</h2>
+        <div class="section-grid">
+            <div class="status-item">
+                <strong>Motor On:</strong> <span id="status-motor-on">Loading...</span>
+            </div>
+            <div class="status-item">
+                <strong>Current Speed:</strong> <span id="status-speed">Loading...</span> kph
+            </div>
+            <div class="status-item">
+                <strong>Target Speed:</strong> <span id="status-target-speed">Loading...</span> kph
+            </div>
+            <div class="status-item">
+                <strong>Direction:</strong> <span id="status-direction">Loading...</span>
+            </div>
+            <div class="status-item">
+                <strong>Battery Level:</strong> <span id="status-battery">Loading...</span>%
+            </div>
+            <div class="status-item">
+                <strong>Motor Temp:</strong> <span id="status-temperature">Loading...</span>°C
+            </div>
+            <div class="status-item">
+                <strong>Steering Angle:</strong> <span id="status-steering">Loading...</span>°
+            </div>
+            <div class="status-item">
+                <strong>GPS:</strong> <span id="status-gps">Loading...</span>
+            </div>
+            <div class="status-item">
+                <strong>Security Locked:</strong> <span id="status-security-locked">Loading...</span>
+            </div>
+            <div class="status-item error">
+                <strong>Errors:</strong> <span id="status-errors">None</span>
+            </div>
+            <div class="status-item">
+                <strong>Solar Charging:</strong> <span id="status-solar-charging">Loading...</span>
+            </div>
+            <div class="status-item">
+                <strong>Grid Charging:</strong> <span id="status-grid-charging">Loading...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = "http://localhost:5000/api/vehicle"; // Your Flask backend URL
+
+        // --- Utility Functions ---
+        function displayMessage(message, type = 'info') {
+            const messageArea = document.getElementById('message-area');
+            messageArea.textContent = message;
+            messageArea.className = ''; // Reset classes
+            messageArea.classList.add(type);
+        }
+
+        async function fetchData(url, method = 'GET', data = null) {
+            try {
+                const options = { method: method };
+                if (data) {
+                    options.headers = { 'Content-Type': 'application/json' };
+                    options.body = JSON.stringify(data);
+                }
+                const response = await fetch(url, options);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || `HTTP error! status: ${response.status}`);
+                }
+                displayMessage(result.message || 'Action successful!', 'success');
+                return result;
+            } catch (error) {
+                console.error("API call error:", error);
+                displayMessage(`Error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+
+        // --- Control Functions ---
+        async function setSecurityLock(lockStatus) {
+            await fetchData(`${BACKEND_URL}/security`, 'POST', { lock: lockStatus });
+            updateStatus(); // Refresh status after action
+        }
+
+        async function toggleMotorPower(on) {
+            await fetchData(`${BACKEND_URL}/control/power`, 'POST', { on: on });
+            updateStatus();
+        }
+
+        async function setSpeed() {
+            const speed = parseFloat(document.getElementById('speed-input').value);
+            if (isNaN(speed)) {
+                displayMessage("Please enter a valid number for speed.", 'error');
+                return;
+            }
+            await fetchData(`${BACKEND_URL}/control/speed`, 'POST', { target_speed_kph: speed });
+            updateStatus();
+        }
+
+        async function setDirection() {
+            const direction = document.getElementById('direction-select').value;
+            await fetchData(`${BACKEND_URL}/control/direction`, 'POST', { direction: direction });
+            updateStatus();
+        }
+
+        async function applyBrake() {
+            const force = parseFloat(document.getElementById('brake-range').value);
+            await fetchData(`${BACKEND_URL}/control/brake`, 'POST', { force: force });
+            updateStatus();
+        }
+
+        async function setSteering() {
+            const angle = parseInt(document.getElementById('steering-range').value);
+            await fetchData(`${BACKEND_URL}/control/steering`, 'POST', { angle: angle });
+            updateStatus();
+        }
+
+        async function setCharging(type, status) {
+            const payload = {};
+            if (type === 'solar') {
+                payload.solar = status;
+            } else if (type === 'grid') {
+                payload.grid = status;
+            }
+            await fetchData(`${BACKEND_URL}/charging`, 'POST', payload);
+            updateStatus();
+        }
+
+        // --- Status Update Function ---
+        async function updateStatus() {
+            const status = await fetchData(`${BACKEND_URL}/status`);
+            if (status) {
+                document.getElementById('status-motor-on').textContent = status.motor_on ? 'ON' : 'OFF';
+                document.getElementById('status-speed').textContent = status.current_speed_kph.toFixed(1);
+                document.getElementById('status-target-speed').textContent = status.target_speed_kph.toFixed(1);
+                document.getElementById('status-direction').textContent = status.current_direction;
+                document.getElementById('status-battery').textContent = status.battery_level_percent.toFixed(1);
+                document.getElementById('status-temperature').textContent = status.motor_temperature_celsius.toFixed(1);
+                document.getElementById('status-steering').textContent = status.steering_angle_degrees;
+                document.getElementById('status-gps').textContent = `${status.gps_latitude.toFixed(5)}, ${status.gps_longitude.toFixed(5)}`;
+                document.getElementById('status-security-locked').textContent = status.security_locked ? 'LOCKED' : 'UNLOCKED';
+                document.getElementById('status-solar-charging').textContent = status.is_charging_solar ? 'Yes' : 'No';
+                document.getElementById('status-grid-charging').textContent = status.is_charging_grid ? 'Yes' : 'No';
+
+                const errorsElement = document.getElementById('status-errors');
+                if (status.errors && status.errors.length > 0) {
+                    errorsElement.textContent = status.errors.join(', ');
+                    errorsElement.parentElement.classList.add('error');
+                } else {
+                    errorsElement.textContent = 'None';
+                    errorsElement.parentElement.classList.remove('error');
+                }
+
+                // Enable/disable buttons based on security lock and motor state
+                const isLocked = status.security_locked;
+                const isMotorOn = status.motor_on;
+                document.querySelectorAll('.control-group button').forEach(button => {
+                    const id = button.id;
+                    // Specific logic for lock/unlock buttons
+                    if (id === 'motorOnBtn' || id === 'motorOffBtn') {
+                        button.disabled = isLocked;
+                    } else if (button.onclick.toString().includes('setSecurityLock')) {
+                        // Lock/Unlock buttons are always enabled
+                    } else {
+                        button.disabled = isLocked || !isMotorOn;
+                    }
+                });
+                 // Enable/disable inputs too
+                document.querySelectorAll('.control-group input, .control-group select').forEach(input => {
+                    input.disabled = isLocked || !isMotorOn;
+                });
+                 // Exceptions for charging and security
+                 document.getElementById('security-lock').disabled = false; // The security controls themselves
+                 document.getElementById('motorOnBtn').disabled = isLocked;
+                 document.getElementById('motorOffBtn').disabled = isLocked;
+            }
+        }
+
+        // Update brake value display
+        document.getElementById('brake-range').addEventListener('input', function() {
+            document.getElementById('brake-value').textContent = this.value;
+        });
+
+        // Update steering value display
+        document.getElementById('steering-range').addEventListener('input', function() {
+            document.getElementById('steering-value').textContent = this.value;
+        });
+
+        // Initial status update and then poll every 1 second
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStatus();
+            setInterval(updateStatus, 1000); // Poll status every 1 second
+        });
+    </script>
+</body>
+</html>

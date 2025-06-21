@@ -1,5 +1,5 @@
-# proton_backend.py
-from flask import Flask, jsonify, request
+# proton_backend.py (Modified)
+from flask import Flask, jsonify, request, send_from_directory # Add send_from_directory
 import requests
 import os
 import time
@@ -9,8 +9,17 @@ app = Flask(__name__)
 # --- Configuration ---
 MOCK_MOTOR_CONTROL_URL = os.environ.get("MOCK_MOTOR_CONTROL_URL", "http://localhost:5001")
 
+# --- New: Route to serve the frontend HTML file ---
+@app.route('/')
+def serve_dashboard():
+    """Serves the main HTML dashboard file."""
+    # Assumes index.html is in the same directory as this Python script
+    return send_from_directory('.', 'index.html')
+
 # --- Backend Service Layer (Interacts with Mock Motor Control) ---
+# ... (rest of your MotorControlService class code remains the same) ...
 class MotorControlService:
+    # ... (all your existing methods) ...
     def __init__(self, base_url):
         self.base_url = base_url
 
@@ -80,6 +89,7 @@ class MotorControlService:
 motor_service = MotorControlService(MOCK_MOTOR_CONTROL_URL)
 
 # --- Proton Backend API Endpoints ---
+# ... (all your existing @app.route functions remain the same) ...
 
 @app.route('/api/vehicle/status', methods=['GET'])
 def get_status():
@@ -166,9 +176,7 @@ def manage_security():
     response_data, status_code = motor_service.set_security_lock(lock_status)
     return jsonify(response_data), status_code
 
-
 # --- Main Runner ---
 if __name__ == '__main__':
-    # Run the backend server on port 5000 (default for Flask)
     print("Starting Proton Backend Service on http://127.0.0.1:5000")
     app.run(debug=True, port=5000)
